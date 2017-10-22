@@ -25,11 +25,11 @@ darsdbus_new()
     const char *intf_STRING = "org.PulseAudio.ServerLookup1";
     const char *arg_STRING = "Address";
 
-    darsdbus_t *bus = malloc(sizeof darsdbus_t);
+    darsdbus_t *bus = malloc(sizeof(darsdbus_t));
     if (!bus)
         return NULL;
 
-    memset(bus, 0, sizeof darsdbus_t);
+    memset(bus, 0, sizeof(darsdbus_t));
     dbus_error_init(&err);
 
     /*
@@ -270,8 +270,8 @@ darsdbus_set_param(darsdbus_t *bus, const char *param, const char *value)
     DBusMessageIter sub;
     int retcode = -1;
 
-    if (!bus || !name || !value || !bus->conn)
-        return NULL;
+    if (!bus || !param || !value || !bus->conn)
+        return -1;
 
     dbus_error_init(&err);
     msg = dbus_message_new_method_call(

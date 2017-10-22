@@ -9,6 +9,9 @@
 #include <dbus/dbus.h>
 #include <ncurses.h>
 
+#include "darsdbus.h"
+
+#if 0
 static char* get_pulse_dbus_addr()
 {
 
@@ -277,61 +280,24 @@ ret:
     }
     return retcode;
 }
-
-static int load_config()
-{
-    char *xdg_conf_dir = getenv("XDG_CONFIG_HOME");
-    char *home = getenv("HOME");
-    const char *dars_conf_dir = "darsaudio";
-    char *startup_file;
-    struct stat stbuf;
-    int ret;
-
-    if (!home) {
-        home = "/";
-    }
-    if (!xdg_conf_dir) {
-        xdg_conf_dir = ".config";
-    }
-
-    int conf_dir_len =  strlen(home) + strlen(xdg_conf_dir) + strlen(dars_conf_dir) + 3;
-    char *conf_dir = malloc(conf_dir_len);
-    snprintf(conf_dir, conf_dir_len, "%s/%s/%s", home, xdg_conf_dir, dars_conf_dir);
-
-    int startup_file_len = conf_dir_len + strlen("init.rc") + 2;
-    startup_file = malloc(startup_file_len);
-    snprintf(startup_file, startup_file_len, "%s/%s", conf_dir, "init.rc");
-
-    ret = stat(conf_dir, &stbuf);
-    if (ret < 0) {
-        // no config dir found, we mkdir
-        if (mkdir(conf_dir, 0755) < 0) {
-            fprintf(stderr, "can not create config dir %s\n", conf_dir);
-            goto out;
-        }
-    }
-out:
-    free(conf_dir);
-    return 0;
-}
-
+#endif
 
 int
 main(int argc, char *argv[])
 {
-    char *pulse_dbus_addr = NULL;
     char *name = NULL;
     char *ver = NULL;
     char ch;
+    darsdbus_t *dars_dbus;
 
-    pulse_dbus_addr = get_pulse_dbus_addr();
-    if (!pulse_dbus_addr) {
-        fprintf(stderr, "can't get pulseaudio dbus address: module-dbus-protocol loaded ?\n");
+    dars_dbus = darsdbus_new();
+    if (!dars_dbus) {
+        fprintf(stderr, "can't init darsaudio dbus : module-dbus-protocol loaded ?\n");
         exit(EXIT_FAILURE);
     }
 
-    name = get_dars_property(pulse_dbus_addr, "Name");
-    ver = get_dars_property(pulse_dbus_addr, "Version");
+    name = darsdbus_get_property(dars_dbus, "Name");
+    ver = darsdbus_get_param(dars_dbus, "Version");
     if (!name || ! ver) {
         fprintf(stderr, "can't darsaudio's info : module-dars-sink loaded ?\n");
         exit(EXIT_FAILURE);
@@ -360,8 +326,8 @@ main(int argc, char *argv[])
             key = strtok(argv[i], "=");
             value = strtok(NULL, "=");
 
-            set_dars_param(pulse_dbus_addr, key, value);
-            printf("%s -> %s\n", key, get_dars_param(pulse_dbus_addr, key));
+            darsdbus_set_param(dars_dbus, key, value);
+            printf("%s -> %s\n", key, darsdbus_get_param(dars_dbus, key));
             i++;
         }
         exit(EXIT_SUCCESS);
@@ -380,7 +346,7 @@ main(int argc, char *argv[])
     char title_disable[] = "  DARS AUDIO (Disable) F12 ";
     char title_unknown[] = "  DARS AUDIO (unknown) F12 ";
     char *title;
-    char *ge = get_dars_param(pulse_dbus_addr, "global-enable");
+    char *ge = darsdbus_get_param(dars_dbus, "global-enable");
     if (ge) {
         if (ge[0] == '0') {
             title = title_disable;
@@ -411,18 +377,18 @@ main(int argc, char *argv[])
 
             case KEY_F(12): {
 
-                                char *ge = get_dars_param(pulse_dbus_addr, "global-enable");
+                                char *ge = darsdbus_get_param(dars_dbus, "global-enable");
                                 if (ge) {
                                     if (ge[0] == '0') {
-                                        set_dars_param(pulse_dbus_addr, "global-enable", "1");
+                                        darsdbus_set_param(dars_dbus, "global-enable", "1");
                                     }
                                     else if (ge[0] == '1') {
-                                        set_dars_param(pulse_dbus_addr, "global-enable", "0");
+                                        darsdbus_set_param(dars_dbus, "global-enable", "0");
                                     }
                                     free(ge);
                                 }
 
-                                ge = get_dars_param(pulse_dbus_addr, "global-enable");
+                                ge = darsdbus_get_param(dars_dbus, "global-enable");
                                 if (ge) {
                                     if (ge[0] == '0') {
                                         title = title_disable;
