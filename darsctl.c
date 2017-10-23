@@ -10,6 +10,7 @@
 #include <ncurses.h>
 
 #include "darsdbus.h"
+#include "topbar.h"
 
 #if 0
 static char* get_pulse_dbus_addr()
@@ -282,6 +283,8 @@ ret:
 }
 #endif
 
+topbar_t *g_topbar = NULL;
+
 int
 main(int argc, char *argv[])
 {
@@ -341,6 +344,8 @@ main(int argc, char *argv[])
     curs_set(0);
 
     int active_frame = 0;
+
+    g_topbar = topbar_new(stdscr);
     
     char title_enable[] = "  DARS AUDIO (Enable) F12 ";
     char title_disable[] = "  DARS AUDIO (Disable) F12 ";
@@ -365,9 +370,8 @@ main(int argc, char *argv[])
 
     for(;;) {
         erase();
-        box(stdscr, 0, 0);
-        mvprintw(0, COLS/2 - strlen(title)/2, title);
-        refresh();
+        // mvprintw(0, COLS/2 - strlen(title)/2, title);
+        topbar_draw_refresh(g_topbar);
         int ch = getch();
         switch(ch) {
             case 27: // ESC code
@@ -411,6 +415,7 @@ main(int argc, char *argv[])
 
     }
 
+    topbar_del(g_topbar);
     endwin();
 
     return EXIT_SUCCESS;
