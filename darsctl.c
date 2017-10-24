@@ -11,279 +11,16 @@
 
 #include "darsdbus.h"
 #include "topbar.h"
+#include "volume.h"
 
-#if 0
-static char* get_pulse_dbus_addr()
-{
-
-    DBusError err;
-    DBusConnection *session = NULL;
-    DBusMessage *msg = NULL;
-    DBusMessage *reply = NULL;
-    char *addr = NULL;
-    DBusMessageIter iter;
-    DBusMessageIter sub;
-    const char *intf_STRING = "org.PulseAudio.ServerLookup1";
-    const char *arg_STRING = "Address";
-
-
-    if (addr = getenv("PULSE_DBUS_SERVER")) {
-        return addr;
-    }
-   
-    dbus_error_init(&err);
-    session = dbus_bus_get(DBUS_BUS_SESSION, &err);
-
-    if (!session) {
-        fprintf(stderr, "%s : %s\n", err.name, err.message);
-        return NULL;
-    }
-
-    msg = dbus_message_new_method_call(
-            "org.PulseAudio1", // destination
-            "/org/pulseaudio/server_lookup1", // path
-            "org.freedesktop.DBus.Properties", // interface
-            "Get"
-            );
-    if (!msg) {
-        fprintf(stderr, "can't new method call\n");
-        addr = NULL;
-        goto ret;
-    }
-    if (!dbus_message_append_args(msg,  DBUS_TYPE_STRING, &intf_STRING, 
-                                        DBUS_TYPE_STRING, &arg_STRING, DBUS_TYPE_INVALID)) {
-        fprintf(stderr, "can't add arg\n");
-        addr = NULL;
-        goto ret;
-    }
-    reply = dbus_connection_send_with_reply_and_block(session, msg, DBUS_TIMEOUT_INFINITE, &err );
-    if (!reply) {
-        fprintf(stderr, "send ERROR: %s : %s\n", err.name, err.message);
-        addr = NULL;
-        goto ret;
-    }
-
-    dbus_message_iter_init(reply, &iter);
-    int type;
-    while ((type = dbus_message_iter_get_arg_type(&iter)) != DBUS_TYPE_INVALID) {
-        if (type == DBUS_TYPE_VARIANT) {
-            dbus_message_iter_recurse(&iter, &sub);
-            type = dbus_message_iter_get_arg_type(&sub);
-            if (type == DBUS_TYPE_STRING) {
-                dbus_message_iter_get_basic(&sub, &addr);
-                if (addr)
-                    addr = strdup(addr);
-            }
-        }
-        dbus_message_iter_next(&iter);
-    }
-
-ret :
-    if (msg)
-        dbus_message_unref(msg);
-    if (reply)
-        dbus_message_unref(reply);
-    if (session)
-        dbus_connection_unref(session);
-    return addr;
-}
-
-static char *get_dars_property(char *addr, const char *name) 
-{
-    char *value = NULL;
-    DBusConnection *conn = NULL;
-    DBusError err;
-    DBusMessage *msg = NULL;
-    DBusMessage *reply = NULL;
-    DBusMessageIter iter;
-    DBusMessageIter sub;
-    const char *intf_STRING = "org.PulseAudio.Ext.Dars.Controller";
-    const char *arg_STRING = name;
-
-    dbus_error_init(&err);
-    conn = dbus_connection_open_private(addr, &err);
-    if (!conn) {
-        fprintf(stderr, "connection error: %s : %s\n", err.name, err.message);
-        value = NULL;
-        goto ret;
-    }
-
-    msg = dbus_message_new_method_call(
-            "org.PulseAudio.Ext.Dars.Controller", // destination
-            "/org/pulseaudio/dars", // path
-            "org.freedesktop.DBus.Properties", // interface
-            "Get"
-            );
-    if (!msg) {
-        fprintf(stderr, "can't new method call\n");
-        value = NULL;
-        goto ret;
-    }
-
-    if (!dbus_message_append_args(msg,  DBUS_TYPE_STRING, &intf_STRING, 
-                                        DBUS_TYPE_STRING, &arg_STRING, DBUS_TYPE_INVALID)) {
-        fprintf(stderr, "can't add arg\n");
-        value = NULL;
-        goto ret;
-    }
-
-    reply = dbus_connection_send_with_reply_and_block(conn, msg, DBUS_TIMEOUT_INFINITE, &err );
-    if (!reply) {
-        fprintf(stderr, "send ERROR: %s : %s\n", err.name, err.message);
-        value = NULL;
-        goto ret;
-    }
-
-    dbus_message_iter_init(reply, &iter);
-    int type;
-    while ((type = dbus_message_iter_get_arg_type(&iter)) != DBUS_TYPE_INVALID) {
-        if (type == DBUS_TYPE_VARIANT) {
-            dbus_message_iter_recurse(&iter, &sub);
-            type = dbus_message_iter_get_arg_type(&sub);
-            if (type == DBUS_TYPE_STRING) {
-                dbus_message_iter_get_basic(&sub, &value);
-                if (value)
-                    value = strdup(value);
-            }
-        }
-        dbus_message_iter_next(&iter);
-    }
-
-ret:
-    if (msg)
-        dbus_message_unref(msg);
-    if (reply)
-        dbus_message_unref(reply);
-    if (conn) {
-        dbus_connection_close(conn);
-        dbus_connection_unref(conn);
-    }
-    return value;
-}
-
-static char *get_dars_param(char *addr, const char *name)
-{
-    char *value = NULL;
-    DBusConnection *conn = NULL;
-    DBusError err;
-    DBusMessage *msg = NULL;
-    DBusMessage *reply = NULL;
-    DBusMessageIter iter;
-    DBusMessageIter sub;
-    const char *intf_STRING = "org.PulseAudio.Ext.Dars.Controller";
-    const char *arg_STRING = name;
-
-    dbus_error_init(&err);
-    conn = dbus_connection_open_private(addr, &err);
-    if (!conn) {
-        fprintf(stderr, "connection error: %s : %s\n", err.name, err.message);
-        value = NULL;
-        goto ret;
-    }
-
-    msg = dbus_message_new_method_call(
-            "org.PulseAudio.Ext.Dars.Controller", // destination
-            "/org/pulseaudio/dars", // path
-            "org.PulseAudio.Ext.Dars.Controller", // interface
-            "GetParam"
-            );
-    if (!msg) {
-        fprintf(stderr, "can't new method call\n");
-        value = NULL;
-        goto ret;
-    }
-
-    if (!dbus_message_append_args(msg, DBUS_TYPE_STRING, &arg_STRING, DBUS_TYPE_INVALID)) {
-        fprintf(stderr, "can't add arg\n");
-        value = NULL;
-        goto ret;
-    }
-
-    reply = dbus_connection_send_with_reply_and_block(conn, msg, DBUS_TIMEOUT_INFINITE, &err );
-    if (!reply) {
-        fprintf(stderr, "send ERROR: %s : %s\n", err.name, err.message);
-        value = NULL;
-        goto ret;
-    }
-    if (!dbus_message_get_args(reply, &err, DBUS_TYPE_STRING, &value, DBUS_TYPE_INVALID)) {
-        fprintf(stderr, "get args ERROR: %s : %s\n", err.name, err.message);
-        value = NULL;
-        goto ret;
-    }
-    value = strdup(value);
-
-ret:
-    if (msg)
-        dbus_message_unref(msg);
-    if (reply)
-        dbus_message_unref(reply);
-    if (conn) {
-        dbus_connection_close(conn);
-        dbus_connection_unref(conn);
-    }
-    return value;
-}
-
-static int set_dars_param(char *addr, const char *param, const char *value)
-{
-    DBusConnection *conn = NULL;
-    DBusError err;
-    DBusMessage *msg = NULL;
-    DBusMessage *reply = NULL;
-    DBusMessageIter iter;
-    DBusMessageIter sub;
-    int retcode = -1;
-
-    dbus_error_init(&err);
-    conn = dbus_connection_open_private(addr, &err);
-    if (!conn) {
-        fprintf(stderr, "connection error: %s : %s\n", err.name, err.message);
-        retcode = -1;
-        goto ret;
-    }
-
-    msg = dbus_message_new_method_call(
-            "org.PulseAudio.Ext.Dars.Controller", // destination
-            "/org/pulseaudio/dars", // path
-            "org.PulseAudio.Ext.Dars.Controller", // interface
-            "SetParam"
-            );
-    if (!msg) {
-        fprintf(stderr, "can't new method call\n");
-        retcode = -1;
-        goto ret;
-    }
-
-    if (!dbus_message_append_args(msg, 
-                DBUS_TYPE_STRING, &param, 
-                DBUS_TYPE_STRING, &value, DBUS_TYPE_INVALID)) {
-        fprintf(stderr, "can't add arg\n");
-        retcode = -1;
-        goto ret;
-    }
-
-    reply = dbus_connection_send_with_reply_and_block(conn, msg, DBUS_TIMEOUT_INFINITE, &err );
-    if (!reply) {
-        fprintf(stderr, "send ERROR: %s : %s\n", err.name, err.message);
-        retcode = -1;
-        goto ret;
-    }
-    retcode = 0;
-
-ret:
-    if (msg)
-        dbus_message_unref(msg);
-    if (reply)
-        dbus_message_unref(reply);
-    if (conn) {
-        dbus_connection_close(conn);
-        dbus_connection_unref(conn);
-    }
-    return retcode;
-}
-#endif
-
+int g_index = 0;
 topbar_t *g_topbar = NULL;
+darsdbus_t *g_dbus = NULL;
+volume_t *g_volume = NULL;
+
+int attr_active;
+
+static int main_draw_refresh(WINDOW *);
 
 int
 main(int argc, char *argv[])
@@ -291,16 +28,15 @@ main(int argc, char *argv[])
     char *name = NULL;
     char *ver = NULL;
     char ch;
-    darsdbus_t *dars_dbus;
 
-    dars_dbus = darsdbus_new();
-    if (!dars_dbus) {
+    g_dbus = darsdbus_new();
+    if (!g_dbus) {
         fprintf(stderr, "can't init darsaudio dbus : module-dbus-protocol loaded ?\n");
         exit(EXIT_FAILURE);
     }
 
-    name = darsdbus_get_property(dars_dbus, "Name");
-    ver = darsdbus_get_param(dars_dbus, "Version");
+    name = darsdbus_get_property(g_dbus, "Name");
+    ver = darsdbus_get_param(g_dbus, "Version");
     if (!name || ! ver) {
         fprintf(stderr, "can't darsaudio's info : module-dars-sink loaded ?\n");
         exit(EXIT_FAILURE);
@@ -329,8 +65,8 @@ main(int argc, char *argv[])
             key = strtok(argv[i], "=");
             value = strtok(NULL, "=");
 
-            darsdbus_set_param(dars_dbus, key, value);
-            printf("%s -> %s\n", key, darsdbus_get_param(dars_dbus, key));
+            darsdbus_set_param(g_dbus, key, value);
+            printf("%s -> %s\n", key, darsdbus_get_param(g_dbus, key));
             i++;
         }
         exit(EXIT_SUCCESS);
@@ -341,74 +77,117 @@ main(int argc, char *argv[])
     noecho();
     ESCDELAY=500;
     keypad(stdscr, TRUE);
-    curs_set(0);
+    curs_set(0); // hide cursor
+    if (has_colors()) {
+        start_color();
+        init_pair(1, COLOR_WHITE, COLOR_BLUE);
+        attr_active = COLOR_PAIR(1);
+    }
 
     int active_frame = 0;
 
     g_topbar = topbar_new(stdscr);
+    g_volume = volume_new(stdscr);
     
-    char title_enable[] = "  DARS AUDIO (Enable) F12 ";
-    char title_disable[] = "  DARS AUDIO (Disable) F12 ";
-    char title_unknown[] = "  DARS AUDIO (unknown) F12 ";
-    char *title;
-    char *ge = darsdbus_get_param(dars_dbus, "global-enable");
-    if (ge) {
-        if (ge[0] == '0') {
-            title = title_disable;
-        }
-        else if (ge[0] == '1') {
-            title = title_enable;
-        }
-        else {
-            title = title_unknown;
-        }
-        free(ge);
-    }
-    else {
-        title = title_unknown;
-    }
-
     for(;;) {
         erase();
-        // mvprintw(0, COLS/2 - strlen(title)/2, title);
         topbar_draw_refresh(g_topbar);
+
+        // draw controls
+        switch(g_index) {
+            case 0:
+                main_draw_refresh(stdscr);
+                break;
+            case 1:
+                volume_draw_refresh(g_volume);
+                break;
+
+            default :
+                break;
+
+        }
+
+
         int ch = getch();
         switch(ch) {
             case 27: // ESC code
                 endwin();
                 exit(EXIT_SUCCESS);
+
+            case KEY_F(1):
+            case 'V':
+                {
+                    topbar_set_active_index(g_topbar, 1);
+                    g_index = 1;
+                }
+                continue;
+            case KEY_F(2):
+            case 'E':
+                {
+                    topbar_set_active_index(g_topbar, 2);
+                }
+                continue;
+            case KEY_F(3):
+            case 'B':
+                {
+                    topbar_set_active_index(g_topbar, 3);
+                }
+                continue;
+            case KEY_F(4):
+            case 'T':
+                {
+                    topbar_set_active_index(g_topbar, 4);
+                }
+                continue;
+            case KEY_F(5):
+            case 'S':
+                {
+                    topbar_set_active_index(g_topbar, 5);
+                }
+                continue;
+            case KEY_F(6):
+            case 'A':
+                {
+                    topbar_set_active_index(g_topbar, 6);
+                }
+                continue;
+            case KEY_F(7):
+            case 'C':
+                {
+                    topbar_set_active_index(g_topbar, 7);
+                }
+                continue;
+            case KEY_F(8):
+            case 'R':
+                {
+                    topbar_set_active_index(g_topbar, 8);
+                }
+                continue;
+            case KEY_F(9):
+            case 'I':
+                {
+                    topbar_set_active_index(g_topbar, 9);
+                }
+                continue;
+            case KEY_F(10):
+            case 'M':
+                {
+                    topbar_set_active_index(g_topbar, 10);
+                }
+                continue;
+
+            default:
+                break;
+        }
+
+        // key handler
+        switch (g_index) {
+            case 1:
+                volume_key_handler(g_volume, ch);
+                volume_draw_refresh(g_volume);
                 break;
 
-            case KEY_F(12): {
-
-                                char *ge = darsdbus_get_param(dars_dbus, "global-enable");
-                                if (ge) {
-                                    if (ge[0] == '0') {
-                                        darsdbus_set_param(dars_dbus, "global-enable", "1");
-                                    }
-                                    else if (ge[0] == '1') {
-                                        darsdbus_set_param(dars_dbus, "global-enable", "0");
-                                    }
-                                    free(ge);
-                                }
-
-                                ge = darsdbus_get_param(dars_dbus, "global-enable");
-                                if (ge) {
-                                    if (ge[0] == '0') {
-                                        title = title_disable;
-                                    }
-                                    else if (ge[0] == '1') {
-                                        title = title_enable;
-                                    }
-                                    else {
-                                        title = title_unknown;
-                                    }
-                                    free(ge);
-                                }
-                                else {
-                                    title = title_unknown;
-                                }
-                            }
+            default :
                 break;
         }
 
@@ -416,9 +195,37 @@ main(int argc, char *argv[])
     }
 
     topbar_del(g_topbar);
+    volume_del(g_volume);
+    darsdbus_del(g_dbus);
     endwin();
 
     return EXIT_SUCCESS;
 }
 
 
+
+static int 
+main_draw_refresh(WINDOW *scr)
+{
+    if (!scr)
+        return -1;
+
+
+    int len = strlen("  _____          _____   _____           _    _ _____ _____ ____  ");
+    if (COLS >= len) {
+
+        mvwprintw(scr, 4, COLS/2 - len/2, "  _____          _____   _____           _    _ _____ _____ ____  ");
+        mvwprintw(scr, 5, COLS/2 - len/2, " |  __ \\   /\\   |  __ \\ / ____|     /\\  | |  | |  __ \\_   _/ __ \\ ");
+        mvwprintw(scr, 6, COLS/2 - len/2, " | |  | | /  \\  | |__) | (___      /  \\ | |  | | |  | || || |  | |");
+        mvwprintw(scr, 7, COLS/2 - len/2, " | |  | |/ /\\ \\ |  _  / \\___ \\    / /\\ \\| |  | | |  | || || |  | |");
+        mvwprintw(scr, 8, COLS/2 - len/2, " | |__| / ____ \\| | \\ \\ ____) |  / ____ \\ |__| | |__| || || |__| |");
+        mvwprintw(scr, 9, COLS/2 - len/2, " |_____/_/    \\_\\_|  \\_\\_____/  /_/    \\_\\____/|_____/_____\\____/ ");
+
+    }
+    else {
+        char *str = "DarsAudio";
+        int l = strlen(str);
+        mvwprintw(scr, 4, COLS/2 - l/2, str);
+    }
+
+}
