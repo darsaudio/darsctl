@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "volume.h"
 #include "darsdbus.h"
+#include "utils.h"
 
 struct volume {
     WINDOW *scr;
@@ -112,7 +113,7 @@ volume_key_handler(volume_t *vm, int key)
                             float v = vm->pre_volume;
                             char vbuf[32] = {0,};
                             char *vstr = NULL;
-                            v += 0.1f;
+                            v += 0.05f;
                             snprintf(vbuf, 32, "%f", v);
                             if (darsdbus_set_param(g_dbus, "volume-before-dars", vbuf) == 0) {
                                 vstr = darsdbus_get_param(g_dbus, "volume-before-dars");
@@ -128,7 +129,7 @@ volume_key_handler(volume_t *vm, int key)
                             float v = vm->pan;
                             char vbuf[32] = {0,};
                             char *vstr = NULL;
-                            v += 0.1f;
+                            v += 0.05f;
                             snprintf(vbuf, 32, "%f", v);
                             if (darsdbus_set_param(g_dbus, "channels-pan", vbuf) == 0) {
                                 vstr = darsdbus_get_param(g_dbus, "channels-pan");
@@ -144,7 +145,7 @@ volume_key_handler(volume_t *vm, int key)
                             float v = vm->post_volume;
                             char vbuf[32] = {0,};
                             char *vstr = NULL;
-                            v += 0.1f;
+                            v += 0.05f;
                             snprintf(vbuf, 32, "%f", v);
                             if (darsdbus_set_param(g_dbus, "volume-after-dars", vbuf) == 0) {
                                 vstr = darsdbus_get_param(g_dbus, "volume-after-dars");
@@ -169,7 +170,7 @@ volume_key_handler(volume_t *vm, int key)
                             float v = vm->pre_volume;
                             char vbuf[32] = {0,};
                             char *vstr = NULL;
-                            v -= 0.1f;
+                            v -= 0.05f;
                             snprintf(vbuf, 32, "%f", v);
                             if (darsdbus_set_param(g_dbus, "volume-before-dars", vbuf) == 0) {
                                 vstr = darsdbus_get_param(g_dbus, "volume-before-dars");
@@ -185,7 +186,7 @@ volume_key_handler(volume_t *vm, int key)
                             float v = vm->pan;
                             char vbuf[32] = {0,};
                             char *vstr = NULL;
-                            v -= 0.1f;
+                            v -= 0.05f;
                             snprintf(vbuf, 32, "%f", v);
                             if (darsdbus_set_param(g_dbus, "channels-pan", vbuf) == 0) {
                                 vstr = darsdbus_get_param(g_dbus, "channels-pan");
@@ -201,7 +202,7 @@ volume_key_handler(volume_t *vm, int key)
                             float v = vm->post_volume;
                             char vbuf[32] = {0,};
                             char *vstr = NULL;
-                            v -= 0.1f;
+                            v -= 0.05f;
                             snprintf(vbuf, 32, "%f", v);
                             if (darsdbus_set_param(g_dbus, "volume-after-dars", vbuf) == 0) {
                                 vstr = darsdbus_get_param(g_dbus, "volume-after-dars");
@@ -229,6 +230,8 @@ volume_key_handler(volume_t *vm, int key)
 int 
 volume_draw_refresh(volume_t *vm)
 {
+    int ctl_w = COLS / 3;
+
     if (!vm || !vm->scr)
         return -1;
 
@@ -237,12 +240,12 @@ volume_draw_refresh(volume_t *vm)
     if (COLS >= 100) {
         int len = strlen("  _____          _____   _____           __      ______  _     _    _ __  __ ______ ");
         int pos = COLS/2 - len/2;
-        mvwprintw(scr, 1, pos, "  _____          _____   _____           __      ______  _     _    _ __  __ ______ ");
-        mvwprintw(scr, 2, pos, " |  __ \\   /\\   |  __ \\ / ____|          \\ \\    / / __ \\| |   | |  | |  \\/  |  ____|");
-        mvwprintw(scr, 3, pos, " | |  | | /  \\  | |__) | (___    ______   \\ \\  / / |  | | |   | |  | | \\  / | |__   ");
-        mvwprintw(scr, 4, pos, " | |  | |/ /\\ \\ |  _  / \\___ \\  |______|   \\ \\/ /| |  | | |   | |  | | |\\/| |  __|  ");
-        mvwprintw(scr, 5, pos, " | |__| / ____ \\| | \\ \\ ____) |             \\  / | |__| | |___| |__| | |  | | |____ ");
-        mvwprintw(scr, 6, pos, " |_____/_/    \\_\\_|  \\_\\_____/               \\/   \\____/|______\\____/|_|  |_|______|");
+        mvwprintw(scr, 3, pos, "  _____          _____   _____           __      ______  _     _    _ __  __ ______ ");
+        mvwprintw(scr, 4, pos, " |  __ \\   /\\   |  __ \\ / ____|          \\ \\    / / __ \\| |   | |  | |  \\/  |  ____|");
+        mvwprintw(scr, 5, pos, " | |  | | /  \\  | |__) | (___    ______   \\ \\  / / |  | | |   | |  | | \\  / | |__   ");
+        mvwprintw(scr, 6, pos, " | |  | |/ /\\ \\ |  _  / \\___ \\  |______|   \\ \\/ /| |  | | |   | |  | | |\\/| |  __|  ");
+        mvwprintw(scr, 7, pos, " | |__| / ____ \\| | \\ \\ ____) |             \\  / | |__| | |___| |__| | |  | | |____ ");
+        mvwprintw(scr, 8, pos, " |_____/_/    \\_\\_|  \\_\\_____/               \\/   \\____/|______\\____/|_|  |_|______|");
     }
     else {
         char *logo = "DARS-VOLUME";
@@ -251,31 +254,54 @@ volume_draw_refresh(volume_t *vm)
         mvwprintw(scr, 2, pos, logo);
     }
 
+    char buf[64] = {0,};
+    snprintf(buf, 64, "PRE-VOLUME:%.2f", vm->pre_volume);
+
+    sliderbar_conf_t conf;
+    conf.y = LINES - 5;
+    conf.x = ctl_w/2;
+    conf.h = LINES/2;
+    conf.label = buf;
+    conf.min = 0.0f;
+    conf.max = 10.0f;
+    conf.value = vm->pre_volume;
     if (vm->active_index == 1) {
         attron(attr_active);
-        mvwprintw(scr, 10, 0, "pre volume: %f", vm->pre_volume);
+        draw_sliderbar(scr, &conf);
         attroff(attr_active);
     }
     else {
-        mvwprintw(scr, 10, 0, "pre volume: %f", vm->pre_volume);
+        draw_sliderbar(scr, &conf);
     }
 
-    if (vm->active_index == 3) {
-        attron(attr_active);
-        mvwprintw(scr, 10, 60, "post volume: %f", vm->post_volume);
-        attroff(attr_active);
-    }
-    else {
-        mvwprintw(scr, 10, 60, "post volume: %f", vm->post_volume);
-    }
-
+    snprintf(buf, 64, "CHANNELS-PAN:%.2f", vm->pan);
+    conf.x = ctl_w/2 + ctl_w;
+    conf.label = buf;
+    conf.min = -1.0f;
+    conf.max = 1.0f;
+    conf.value = vm->pan;
     if (vm->active_index == 2) {
         attron(attr_active);
-        mvwprintw(scr, 10, 30, "pan: %f", vm->pan);
+        draw_sliderbar(scr, &conf);
         attroff(attr_active);
     }
     else {
-        mvwprintw(scr, 10, 30, "pan: %f", vm->pan);
+        draw_sliderbar(scr, &conf);
+    }
+
+    conf.x = ctl_w/2 + 2*ctl_w;
+    snprintf(buf, 64, "POST-VOLUME:%.2f", vm->post_volume);
+    conf.max = 10;
+    conf.min = 0;
+    conf.label = buf;
+    conf.value = vm->post_volume;
+    if (vm->active_index == 3) {
+        attron(attr_active);
+        draw_sliderbar(scr, &conf);
+        attroff(attr_active);
+    }
+    else {
+        draw_sliderbar(scr, &conf);
     }
 
     wrefresh(scr);

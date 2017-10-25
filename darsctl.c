@@ -12,15 +12,19 @@
 #include "darsdbus.h"
 #include "topbar.h"
 #include "volume.h"
+#include "bass.h"
 
 int g_index = 0;
 topbar_t *g_topbar = NULL;
 darsdbus_t *g_dbus = NULL;
 volume_t *g_volume = NULL;
+bass_t *g_bass = NULL;
 
 int attr_active;
+int darsaudio_global_enable;
 
 static int main_draw_refresh(WINDOW *);
+static int global_enable_refresh(WINDOW *);
 
 int
 main(int argc, char *argv[])
@@ -41,6 +45,7 @@ main(int argc, char *argv[])
         fprintf(stderr, "can't darsaudio's info : module-dars-sink loaded ?\n");
         exit(EXIT_FAILURE);
     }
+
 
     while((ch = getopt(argc, argv, "h")) != -1) {
         switch (ch) {
@@ -80,18 +85,43 @@ main(int argc, char *argv[])
     curs_set(0); // hide cursor
     if (has_colors()) {
         start_color();
-        init_pair(1, COLOR_WHITE, COLOR_BLUE);
+        init_pair(1, COLOR_WHITE, COLOR_RED);
+        init_pair(2, COLOR_WHITE, COLOR_BLACK);
+        init_pair(3, COLOR_WHITE, COLOR_BLUE); // window background
         attr_active = COLOR_PAIR(1);
+
+        wbkgd(stdscr, COLOR_PAIR(3));
     }
 
     int active_frame = 0;
 
     g_topbar = topbar_new(stdscr);
     g_volume = volume_new(stdscr);
+    g_bass = bass_new(stdscr);
+
+    { // check darsaudio global enabel?
+        char * ge = darsdbus_get_param(g_dbus, "global-enable");
+        if (!ge) {
+            darsaudio_global_enable = 0;
+        }
+        else {
+            int e = atoi(ge);
+            darsaudio_global_enable = e ? 1 : 0;
+            free(ge);
+        }
+
+        if (darsaudio_global_enable) {
+            attr_active = COLOR_PAIR(1);
+        }
+        else {
+            attr_active = COLOR_PAIR(2);
+        }
+    }
     
     for(;;) {
         erase();
         topbar_draw_refresh(g_topbar);
+        global_enable_refresh(stdscr);
 
         // draw controls
         switch(g_index) {
@@ -100,6 +130,11 @@ main(int argc, char *argv[])
                 break;
             case 1:
                 volume_draw_refresh(g_volume);
+                break;
+
+
+            case 3:
+                bass_draw_refresh(g_bass);
                 break;
 
             default :
@@ -114,6 +149,35 @@ main(int argc, char *argv[])
                 endwin();
                 exit(EXIT_SUCCESS);
 
+            case ' ': // toggle global enable
+                {
+                    char * ge = darsdbus_get_param(g_dbus, "global-enable");
+                    char buf[8] = {0,};
+                    if (!ge) {
+                        darsaudio_global_enable = 0;
+                    }
+                    else {
+                        int e = atoi(ge);
+                        darsaudio_global_enable = e ? 0 : 1;
+                        free(ge);
+
+                        snprintf(buf, 8, "%d", darsaudio_global_enable);
+                        darsdbus_set_param(g_dbus, "global-enable", buf);
+                    }
+
+                    if (darsaudio_global_enable) {
+                        attr_active = COLOR_PAIR(1);
+                    }
+                    else {
+                        attr_active = COLOR_PAIR(2);
+                    }
+                }
+                break;
+
+            case KEY_HOME:
+                g_index = 0;
+                break;
+
             case KEY_F(1):
             case 'V':
                 {
@@ -125,54 +189,63 @@ main(int argc, char *argv[])
             case 'E':
                 {
                     topbar_set_active_index(g_topbar, 2);
+                    g_index = 2;
                 }
                 continue;
             case KEY_F(3):
             case 'B':
                 {
                     topbar_set_active_index(g_topbar, 3);
+                    g_index = 3;
                 }
                 continue;
             case KEY_F(4):
             case 'T':
                 {
                     topbar_set_active_index(g_topbar, 4);
+                    g_index = 4;
                 }
                 continue;
             case KEY_F(5):
             case 'S':
                 {
                     topbar_set_active_index(g_topbar, 5);
+                    g_index = 5;
                 }
                 continue;
             case KEY_F(6):
             case 'A':
                 {
                     topbar_set_active_index(g_topbar, 6);
+                    g_index = 6;
                 }
                 continue;
             case KEY_F(7):
             case 'C':
                 {
                     topbar_set_active_index(g_topbar, 7);
+                    g_index = 7;
                 }
                 continue;
             case KEY_F(8):
             case 'R':
                 {
                     topbar_set_active_index(g_topbar, 8);
+                    g_index = 8;
                 }
                 continue;
             case KEY_F(9):
             case 'I':
                 {
                     topbar_set_active_index(g_topbar, 9);
+                    g_index = 9;
                 }
                 continue;
             case KEY_F(10):
             case 'M':
                 {
                     topbar_set_active_index(g_topbar, 10);
+                    g_index = 10;
                 }
                 continue;
 
@@ -185,6 +258,11 @@ main(int argc, char *argv[])
             case 1:
                 volume_key_handler(g_volume, ch);
                 volume_draw_refresh(g_volume);
+                break;
+
+            case 3:
+                bass_key_handler(g_bass, ch);
+                bass_draw_refresh(g_bass);
                 break;
 
             default :
@@ -228,4 +306,30 @@ main_draw_refresh(WINDOW *scr)
         mvwprintw(scr, 4, COLS/2 - l/2, str);
     }
 
+    return 0;
+
+}
+
+static int 
+global_enable_refresh(WINDOW *scr)
+{
+    char *str1 = "DarsAudio GlobalEnabled [SPACE BAR]";
+    char *str2 = "DarsAudio GlobalDisabled [SPACE BAR]";
+    int len1 = strlen(str1);
+    int len2 = strlen(str2);
+
+    if (!scr)
+        return -1;
+
+
+    attron(attr_active);
+    if (darsaudio_global_enable)
+        mvwprintw(scr, LINES-1, COLS/2 - len1/2, str1);
+    else
+        mvwprintw(scr, LINES-1, COLS/2 - len2/2, str2);
+    attroff(attr_active);
+
+
+    wrefresh(scr);
+    return 0;
 }

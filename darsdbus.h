@@ -18,6 +18,12 @@ char *darsdbus_get_param(darsdbus_t *bus, const char *name);
 int darsdbus_set_param(darsdbus_t *bus, const char *param, const char *value);
 
 
+int darsdbus_get_int(darsdbus_t *bus, const char *name, int *v);
+int darsdbus_get_float(darsdbus_t *bus, const char *name, float *v);
+
+int darsdbus_set_int(darsdbus_t *bus, const char *name, int v);
+int darsdbus_set_float(darsdbus_t *bus, const char *name, float v);
+
 
 
 

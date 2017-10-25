@@ -6,7 +6,6 @@
 typedef struct {
     int y;
     int x;
-    int w;
     int h;
     char *label;
 

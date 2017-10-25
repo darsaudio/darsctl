@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <dbus/dbus.h>
 
 #include "darsdbus.h"
@@ -306,4 +307,48 @@ out:
         dbus_message_unref(reply);
 
     return retcode;
+}
+
+int 
+darsdbus_get_int(darsdbus_t *bus, const char *name, int *v)
+{
+    char *str = NULL;
+    str = darsdbus_get_param(bus, name);
+    if (!str)
+        return -1;
+
+    *v = atoi(str);
+    free(str);
+
+    return 0;
+}
+
+int 
+darsdbus_get_float(darsdbus_t *bus, const char *name, float *v)
+{
+    char *str = NULL;
+    str = darsdbus_get_param(bus, name);
+    if (!str)
+        return -1;
+
+    *v = strtof(str, NULL);
+    free(str);
+
+    return 0;
+}
+
+int 
+darsdbus_set_int(darsdbus_t *bus, const char *name, int v)
+{
+    char buf[8] = {0,};
+    snprintf(buf, 8, "%d", v);
+    return darsdbus_set_param(bus, name, buf);
+}
+
+int 
+darsdbus_set_float(darsdbus_t *bus, const char *name, float v)
+{
+    char buf[8] = {0,};
+    snprintf(buf, 8, "%.2f", v);
+    return darsdbus_set_param(bus, name, buf);
 }
