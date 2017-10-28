@@ -13,12 +13,16 @@
 #include "topbar.h"
 #include "volume.h"
 #include "bass.h"
+#include "surround.h"
+#include "agc.h"
 
 int g_index = 0;
 topbar_t *g_topbar = NULL;
 darsdbus_t *g_dbus = NULL;
 volume_t *g_volume = NULL;
 bass_t *g_bass = NULL;
+surround_t *g_surround = NULL;
+agc_t *g_agc = NULL;
 
 int attr_active;
 int darsaudio_global_enable;
@@ -98,6 +102,8 @@ main(int argc, char *argv[])
     g_topbar = topbar_new(stdscr);
     g_volume = volume_new(stdscr);
     g_bass = bass_new(stdscr);
+    g_surround = surround_new(stdscr);
+    g_agc = agc_new(stdscr);
 
     { // check darsaudio global enabel?
         char * ge = darsdbus_get_param(g_dbus, "global-enable");
@@ -135,6 +141,14 @@ main(int argc, char *argv[])
 
             case 3:
                 bass_draw_refresh(g_bass);
+                break;
+
+            case 5:
+                surround_draw_refresh(g_surround);
+                break;
+
+            case 6:
+                agc_draw_refresh(g_agc);
                 break;
 
             default :
@@ -265,10 +279,19 @@ main(int argc, char *argv[])
                 bass_draw_refresh(g_bass);
                 break;
 
+            case 5:
+                surround_key_handler(g_surround, ch);
+                surround_draw_refresh(g_surround);
+                break;
+
+            case 6:
+                agc_key_handler(g_agc, ch);
+                agc_draw_refresh(g_agc);
+                break;
+
             default :
                 break;
         }
-
 
     }
 

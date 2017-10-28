@@ -13,8 +13,15 @@
 #define DARS_PARAM_BASS_FACTOR_STR           "bass-factor"
 
 
+#define DARS_PARAM_AGC_ENABLE_STR            "agc-enable"
+#define DARS_PARAM_AGC_RATIO_STR            "agc-ratio"
+#define DARS_PARAM_AGC_VOLUME_STR              "agc-volume"
+#define DARS_PARAM_AGC_MAX_GAIN_STR             "agc-max-gain"
 
 
+#define DARS_PARAM_SURROUND_ENABLE_STR      "surround3d-enable"
+#define DARS_PARAM_SURROUND_STEREO_STR      "surround3d-stereo-width"
+#define DARS_PARAM_SURROUND_IMAGE_STR       "surround3d-stereo-image"
 
 
 
