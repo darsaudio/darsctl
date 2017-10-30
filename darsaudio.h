@@ -12,6 +12,10 @@
 #define DARS_PARAM_BASS_FREQ_STR             "bass-freq"
 #define DARS_PARAM_BASS_FACTOR_STR           "bass-factor"
 
+#define DARS_PARAM_CLARITY_ENABLE_STR        "clarity-enable"
+#define DARS_PARAM_CLARITY_MODE_STR          "clarity-mode"
+#define DARS_PARAM_CLARITY_FACTOR_STR        "clarity-factor"
+
 
 #define DARS_PARAM_AGC_ENABLE_STR            "agc-enable"
 #define DARS_PARAM_AGC_RATIO_STR            "agc-ratio"

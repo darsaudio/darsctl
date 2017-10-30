@@ -13,6 +13,7 @@
 #include "topbar.h"
 #include "volume.h"
 #include "bass.h"
+#include "clarity.h"
 #include "surround.h"
 #include "agc.h"
 
@@ -21,6 +22,7 @@ topbar_t *g_topbar = NULL;
 darsdbus_t *g_dbus = NULL;
 volume_t *g_volume = NULL;
 bass_t *g_bass = NULL;
+clarity_t *g_clarity = NULL;
 surround_t *g_surround = NULL;
 agc_t *g_agc = NULL;
 
@@ -102,6 +104,7 @@ main(int argc, char *argv[])
     g_topbar = topbar_new(stdscr);
     g_volume = volume_new(stdscr);
     g_bass = bass_new(stdscr);
+    g_clarity = clarity_new(stdscr);
     g_surround = surround_new(stdscr);
     g_agc = agc_new(stdscr);
 
@@ -141,6 +144,10 @@ main(int argc, char *argv[])
 
             case 3:
                 bass_draw_refresh(g_bass);
+                break;
+
+            case 4:
+                clarity_draw_refresh(g_clarity);
                 break;
 
             case 5:
@@ -277,6 +284,11 @@ main(int argc, char *argv[])
             case 3:
                 bass_key_handler(g_bass, ch);
                 bass_draw_refresh(g_bass);
+                break;
+
+            case 4:
+                clarity_key_handler(g_clarity, ch);
+                clarity_draw_refresh(g_clarity);
                 break;
 
             case 5:
