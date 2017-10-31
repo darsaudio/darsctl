@@ -225,7 +225,7 @@ clarity_draw_refresh(clarity_t *c)
         attroff(attr_active);
     }
     else {
-        mvwprintw(scr, LINES-5, ctl_w/2+ctl_w, "BASS-MODE");
+        mvwprintw(scr, LINES-5, ctl_w/2+ctl_w, "CLARITY-MODE");
         if (c->mode == 0) {
             attron(A_BOLD);
             mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
@@ -268,7 +268,7 @@ clarity_draw_refresh(clarity_t *c)
         attroff(attr_active);
     }
     else {
-        draw_factor_ctl(c, 1);
+        draw_factor_ctl(c, 0);
     }
 
     return 0;
