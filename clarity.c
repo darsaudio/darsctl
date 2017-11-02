@@ -20,6 +20,7 @@ extern darsdbus_t *g_dbus;
 extern int attr_active;
 
 static void draw_active_ctl(clarity_t *a, int act);
+static void draw_mode_ctl(clarity_t *a, int act);
 static void draw_factor_ctl(clarity_t *a, int act);
 
 static inline void toggle_enable(clarity_t *c)
@@ -97,7 +98,18 @@ clarity_key_handler(clarity_t *c, int key)
                         break;
 
                     case 2:
-
+                        {
+                            int m = c->mode;
+                            m++;
+                            if (m > 1) {
+                                m = 1;
+                            }
+                            if (0 == darsdbus_set_int(g_dbus, DARS_PARAM_CLARITY_MODE_STR, m)) {
+                                if (0 == darsdbus_get_int(g_dbus, DARS_PARAM_CLARITY_MODE_STR, &m)) {
+                                    c->mode = m;
+                                }
+                            }
+                        }
                         break;
 
                     case 3:
@@ -124,6 +136,18 @@ clarity_key_handler(clarity_t *c, int key)
                         break;
 
                     case 2:
+                        {
+                            int m = c->mode;
+                            m--;
+                            if (m < 0) {
+                                m = 0;
+                            }
+                            if (0 == darsdbus_set_int(g_dbus, DARS_PARAM_CLARITY_MODE_STR, m)) {
+                                if (0 == darsdbus_get_int(g_dbus, DARS_PARAM_CLARITY_MODE_STR, &m)) {
+                                    c->mode = m;
+                                }
+                            }
+                        }
                         break;
 
                     case 3:
@@ -186,80 +210,11 @@ clarity_draw_refresh(clarity_t *c)
 
     if (c->active_index == 2) { // mode
         attron(attr_active);
-        mvwprintw(scr, LINES-5, ctl_w/2+ctl_w, "CLARITY-MODE");
-        if (c->mode == 0) {
-            attron(attr_active | A_BOLD);
-            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
-            attroff(attr_active | A_BOLD);
-        }
-        else {
-            attron(attr_active | A_DIM);
-            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
-            attroff(attr_active | A_DIM);
-        }
-
-        /*
-        if (bs->mode == 1) {
-            attron(attr_active | A_BOLD);
-            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
-            attroff(attr_active | A_BOLD);
-        }
-        else {
-            attron(attr_active | A_DIM);
-            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
-            attroff(attr_active | A_DIM);
-        }
-
-        if (bs->mode == 2) {
-            attron(attr_active | A_BOLD);
-            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
-            attroff(attr_active | A_BOLD);
-        }
-        else {
-            attron(attr_active | A_DIM);
-            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
-            attroff(attr_active | A_DIM);
-        }
-        */
-
+        draw_mode_ctl(c, 1);
         attroff(attr_active);
     }
     else {
-        mvwprintw(scr, LINES-5, ctl_w/2+ctl_w, "CLARITY-MODE");
-        if (c->mode == 0) {
-            attron(A_BOLD);
-            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
-            attroff(A_BOLD);
-        }
-        else {
-            attron(A_DIM);
-            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
-            attroff(A_DIM);
-        }
-
-        /*
-        if (bs->mode == 1) {
-            attron(A_BOLD);
-            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
-            attroff(A_BOLD);
-        }
-        else {
-            attron(A_DIM);
-            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
-            attroff(A_DIM);
-        }
-
-        if (bs->mode == 2) {
-            attron(A_BOLD);
-            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
-            attroff(A_BOLD);
-        }
-        else {
-            attron(A_DIM);
-            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
-            attroff(A_DIM);
-        }
-        */
+        draw_mode_ctl(c, 0);
     }
 
     if (3 == c->active_index) {
@@ -345,4 +300,62 @@ draw_factor_ctl(clarity_t *c, int act)
         draw_sliderbar(c->scr, &conf);
     }
 
+}
+
+static void 
+draw_mode_ctl(clarity_t *c, int act)
+{
+    int ctl_w = COLS / CLARITY_MAX_CTL_NUM;
+    WINDOW *scr = c->scr;
+
+    mvwprintw(scr, LINES-5, ctl_w/2+ctl_w, "CLARITY-MODE");
+    if (c->mode == 0) {
+        if (act) {
+            attron(attr_active | A_BOLD);
+            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
+            attroff(attr_active | A_BOLD);
+        }
+        else {
+            attron(A_BOLD);
+            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
+            attroff(A_BOLD);
+        }
+    }
+    else {
+        if (act) {
+            attron(attr_active | A_DIM);
+            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
+            attroff(attr_active | A_DIM);
+        }
+        else {
+            attron(A_DIM);
+            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
+            attroff(A_DIM);
+        }
+    }
+
+    if (c->mode == 1) {
+        if (act) {
+            attron(attr_active | A_BOLD);
+            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
+            attroff(attr_active | A_BOLD);
+        }
+        else {
+            attron(A_BOLD);
+            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
+            attroff(A_BOLD);
+        }
+    }
+    else {
+        if (act) {
+            attron(attr_active | A_DIM);
+            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
+            attroff(attr_active | A_DIM);
+        }
+        else {
+            attron(A_DIM);
+            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
+            attroff(A_DIM);
+        }
+    }
 }

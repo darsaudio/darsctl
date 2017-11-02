@@ -17,6 +17,8 @@
 #include "surround.h"
 #include "agc.h"
 
+#define TOPBAR_CTL_NUM 10
+
 int g_index = 0;
 topbar_t *g_topbar = NULL;
 darsdbus_t *g_dbus = NULL;
@@ -196,7 +198,24 @@ main(int argc, char *argv[])
                 break;
 
             case KEY_HOME:
+                topbar_set_active_index(g_topbar, 0);
                 g_index = 0;
+                break;
+
+            case KEY_NPAGE:
+                g_index++;
+                if (g_index > TOPBAR_CTL_NUM) {
+                    g_index = TOPBAR_CTL_NUM;
+                }
+                topbar_set_active_index(g_topbar, g_index);
+                break;
+
+            case KEY_PPAGE:
+                g_index--;
+                if (g_index < 0) {
+                    g_index = 0;
+                }
+                topbar_set_active_index(g_topbar, g_index);
                 break;
 
             case KEY_F(1):

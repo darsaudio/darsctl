@@ -20,6 +20,8 @@ struct bass {
 extern darsdbus_t *g_dbus;
 extern int attr_active;
 
+static void draw_mode_ctl(bass_t *bs, int act);
+
 static inline void toggle_enable(bass_t *bs)
 {
     if (!bs)
@@ -96,6 +98,18 @@ bass_key_handler(bass_t *bs, int key)
                         break;
 
                     case 2:
+                        {
+                            int m = bs->mode;
+                            m++;
+                            if (m > 2) {
+                                m = 2;
+                            }
+                            if (0 == darsdbus_set_int(g_dbus, DARS_PARAM_BASS_MODE_STR, m)) {
+                                if (0 == darsdbus_get_int(g_dbus, DARS_PARAM_BASS_MODE_STR, &m)) {
+                                    bs->mode = m;
+                                }
+                            }
+                        }
 
                         break;
 
@@ -135,6 +149,18 @@ bass_key_handler(bass_t *bs, int key)
                         break;
 
                     case 2:
+                        {
+                            int m = bs->mode;
+                            m--;
+                            if (m < 0) {
+                                m = 0;
+                            }
+                            if (0 == darsdbus_set_int(g_dbus, DARS_PARAM_BASS_MODE_STR, m)) {
+                                if (0 == darsdbus_get_int(g_dbus, DARS_PARAM_BASS_MODE_STR, &m)) {
+                                    bs->mode = m;
+                                }
+                            }
+                        }
                         break;
 
                     case 3:
@@ -170,6 +196,90 @@ bass_key_handler(bass_t *bs, int key)
 
     }
 
+}
+
+static void draw_mode_ctl(bass_t *bs, int act)
+{
+    int ctl_w = COLS / BASS_MAX_CTL_NUM;
+    WINDOW *scr = bs->scr;
+
+    mvwprintw(scr, LINES-5, ctl_w/2+ctl_w, "BASS-MODE");
+    if (0 == bs->mode) {
+        if (act) {
+            attron(attr_active | A_BOLD);
+            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
+            attroff(attr_active | A_BOLD);
+        }
+        else {
+            attron(A_BOLD);
+            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
+            attroff(A_BOLD);
+        }
+    }
+    else {
+        if (act) {
+            attron(attr_active | A_DIM);
+            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
+            attroff(attr_active | A_DIM);
+        }
+        else {
+            attron(A_DIM);
+            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
+            attroff(A_DIM);
+        }
+    }
+
+    if (1 == bs->mode) {
+        if (act) {
+            attron(attr_active | A_BOLD);
+            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
+            attroff(attr_active | A_BOLD);
+        }
+        else {
+            attron(A_BOLD);
+            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
+            attroff(A_BOLD);
+        }
+    }
+    else {
+        if (act) {
+            attron(attr_active | A_DIM);
+            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
+            attroff(attr_active | A_DIM);
+        }
+        else {
+            attron(A_DIM);
+            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
+            attroff(A_DIM);
+        }
+
+    }
+
+    if (2 == bs->mode) {
+        if (act) {
+            attron(attr_active | A_BOLD);
+            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
+            attroff(attr_active | A_BOLD);
+        }
+        else {
+            attron(A_BOLD);
+            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
+            attroff(A_BOLD);
+        }
+    }
+    else {
+        if (act) {
+            attron(attr_active | A_DIM);
+            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
+            attroff(attr_active | A_DIM);
+        }
+        else {
+            attron(A_DIM);
+            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
+            attroff(A_DIM);
+        }
+
+    }
 }
 
 int 
@@ -230,80 +340,11 @@ bass_draw_refresh(bass_t *bs)
 
     if (bs->active_index == 2) { // mode
         attron(attr_active);
-        mvwprintw(scr, LINES-5, ctl_w/2+ctl_w, "BASS-MODE");
-        if (bs->mode == 0) {
-            attron(attr_active | A_BOLD);
-            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
-            attroff(attr_active | A_BOLD);
-        }
-        else {
-            attron(attr_active | A_DIM);
-            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
-            attroff(attr_active | A_DIM);
-        }
-
-        /*
-        if (bs->mode == 1) {
-            attron(attr_active | A_BOLD);
-            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
-            attroff(attr_active | A_BOLD);
-        }
-        else {
-            attron(attr_active | A_DIM);
-            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
-            attroff(attr_active | A_DIM);
-        }
-
-        if (bs->mode == 2) {
-            attron(attr_active | A_BOLD);
-            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
-            attroff(attr_active | A_BOLD);
-        }
-        else {
-            attron(attr_active | A_DIM);
-            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
-            attroff(attr_active | A_DIM);
-        }
-        */
-
+        draw_mode_ctl(bs, 1);
         attroff(attr_active);
     }
     else {
-        mvwprintw(scr, LINES-5, ctl_w/2+ctl_w, "BASS-MODE");
-        if (bs->mode == 0) {
-            attron(A_BOLD);
-            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
-            attroff(A_BOLD);
-        }
-        else {
-            attron(A_DIM);
-            mvwprintw(scr, LINES-5-2, ctl_w/2+ctl_w, "NATURE");
-            attroff(A_DIM);
-        }
-
-        /*
-        if (bs->mode == 1) {
-            attron(A_BOLD);
-            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
-            attroff(A_BOLD);
-        }
-        else {
-            attron(A_DIM);
-            mvwprintw(scr, LINES-5-4, ctl_w/2+ctl_w, "OXYGEN");
-            attroff(A_DIM);
-        }
-
-        if (bs->mode == 2) {
-            attron(A_BOLD);
-            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
-            attroff(A_BOLD);
-        }
-        else {
-            attron(A_DIM);
-            mvwprintw(scr, LINES-5-6, ctl_w/2+ctl_w, "SUBWOOFER");
-            attroff(A_DIM);
-        }
-        */
+        draw_mode_ctl(bs, 0);
     }
 
 

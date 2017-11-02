@@ -83,8 +83,8 @@ int topbar_draw_refresh(topbar_t *tb)
     char *str5 = str5_2;
 
     char *str6_2 = "AutoGain(F6)";
-    char *str6_1 = "AGC(F5)";
-    char *str6_0 = "A(F5)";
+    char *str6_1 = "AGC(F6)";
+    char *str6_0 = "A(F6)";
     char *str6 = str6_2;
 
     char *str7_2 = "Compressor(F7)";
