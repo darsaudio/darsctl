@@ -28,5 +28,9 @@
 #define DARS_PARAM_SURROUND_IMAGE_STR       "surround3d-stereo-image"
 
 
+#define DARS_PARAM_FIREQ_ENABLE_STR          "eq-enable"
+#define DARS_PARAM_FIREQ_BANDS_STR           "eq-bands"
+
+
 
 #endif      /* __DARSAUDIO_H__ */

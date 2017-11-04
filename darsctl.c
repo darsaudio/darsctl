@@ -16,6 +16,7 @@
 #include "clarity.h"
 #include "surround.h"
 #include "agc.h"
+#include "eq.h"
 
 #define TOPBAR_CTL_NUM 10
 
@@ -27,6 +28,7 @@ bass_t *g_bass = NULL;
 clarity_t *g_clarity = NULL;
 surround_t *g_surround = NULL;
 agc_t *g_agc = NULL;
+eq_t *g_eq = NULL;
 
 int attr_active;
 int darsaudio_global_enable;
@@ -109,6 +111,7 @@ main(int argc, char *argv[])
     g_clarity = clarity_new(stdscr);
     g_surround = surround_new(stdscr);
     g_agc = agc_new(stdscr);
+    g_eq = eq_new(stdscr);
 
     { // check darsaudio global enabel?
         char * ge = darsdbus_get_param(g_dbus, "global-enable");
@@ -143,6 +146,9 @@ main(int argc, char *argv[])
                 volume_draw_refresh(g_volume);
                 break;
 
+            case 2:
+                eq_draw_refresh(g_eq);
+                break;
 
             case 3:
                 bass_draw_refresh(g_bass);
@@ -298,6 +304,10 @@ main(int argc, char *argv[])
             case 1:
                 volume_key_handler(g_volume, ch);
                 volume_draw_refresh(g_volume);
+                break;
+            case 2:
+                eq_key_handler(g_eq, ch);
+                eq_draw_refresh(g_eq);
                 break;
 
             case 3:
