@@ -50,7 +50,7 @@ main(int argc, char *argv[])
     }
 
     name = darsdbus_get_property(g_dbus, "Name");
-    ver = darsdbus_get_param(g_dbus, "Version");
+    ver = darsdbus_get_property(g_dbus, "Version");
     if (!name || ! ver) {
         fprintf(stderr, "can't darsaudio's info : module-dars-sink loaded ?\n");
         exit(EXIT_FAILURE);
