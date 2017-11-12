@@ -3,6 +3,12 @@
 
 # DarsAudio command line control tool
 
+# How to install ?
+
+1. git clone https://github.com/darsaudio/darsctl.git
+2. cd darsctl
+3. make
+
 ## main
 
 ![image](https://github.com/darsaudio/darsctl/raw/master/images/ds1.png)
