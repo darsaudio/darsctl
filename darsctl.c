@@ -42,6 +42,21 @@ main(int argc, char *argv[])
     char *name = NULL;
     char *ver = NULL;
     char ch;
+    int ret;
+
+    /*
+     * check the is the driver loaded?
+     */
+
+    ret = system("pacmd list-modules | grep module-dbus-protocol 1>/dev/null 2>&1 ");
+    if (ret) {
+        system("pacmd load-module module-dbus-protocol 1>/dev/null 2>&1");
+    }
+
+    ret = system("pacmd list-modules | grep module-dars-sink 1>/dev/null 2>&1");
+    if (ret) {
+        system("pacmd load-module module-dars-sink 1>/dev/null 2>&1");
+    }
 
     g_dbus = darsdbus_new();
     if (!g_dbus) {
